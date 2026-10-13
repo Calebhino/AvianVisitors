@@ -189,6 +189,26 @@ class BundlePhpEndpoints(unittest.TestCase):
             with self.subTest(choice=choice):
                 self.assertEqual(self.request(base + choice)[0], 400)
 
+    def test_numbered_bundle_assets_match_the_complete_geometry_inventory(self) -> None:
+        pack = self.library / 'packs/test-pack/1.0.0'
+        index = json.loads((pack / 'index.json').read_text())
+        slug = 'corvus-brachyrhynchos'
+        item = index['assets'][slug]['perched']
+        index['assets'][slug] = {f'variant-{i}': item for i in (1, 2, 11, 32)}
+        self._json(pack / 'index.json', index)
+        keys = [slug, slug + '-2', slug + '-11', slug + '-32']
+        self._json(pack / 'dims.json', {key: [560, 400] for key in keys})
+        self._json(pack / 'masks.json', {key: {'w': 1, 'h': 1, 'bits': 'gA=='} for key in keys})
+        status, body, _ = self.request('/avian/api/bundle-assets.php')
+        self.assertEqual(status, 200, body)
+        data = json.loads(body)
+        self.assertEqual(data['active']['species_count'], 1)
+        self.assertEqual(data['active']['pose_count'], 4)
+        self.assertEqual(set(data['dims']), set(keys))
+        self._json(pack / 'dims.json', {key: [560, 400] for key in keys[:-1]})
+        self._json(pack / 'masks.json', {key: {'w': 1, 'h': 1, 'bits': 'gA=='} for key in keys[:-1]})
+        self.assertEqual(self.request('/avian/api/bundle-assets.php')[0], 503)
+
     def test_included_cutout_head_matches_get_for_both_poses(self) -> None:
         self._json(self.library / "active.json", {
             "schema_version": 1,

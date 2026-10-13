@@ -1241,7 +1241,7 @@
     var species = Object.create(null);
     for (var i = 0; i < dimKeys.length; i++) {
       var key = dimKeys[i];
-      var base = /-2$/.test(key) ? key.slice(0, -2) : key;
+      var base = key.replace(/-(?:[2-9]|[12][0-9]|3[0-2])$/, '');
       var dim = dims[key];
       var mask = masks[key];
       if (base.length > BUNDLE_SCIENTIFIC_SLUG_MAX || /[\u0000-\u001f\u007f]/.test(base) ||

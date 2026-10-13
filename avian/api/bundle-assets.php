@@ -60,8 +60,10 @@ if (!$active['included']) {
     $expected = [];
     foreach ($index['assets'] as $slug => $poses) {
         $species[$slug] = true;
-        if (isset($poses['perched'])) $expected[] = $slug;
-        if (isset($poses['flight'])) $expected[] = $slug . '-2';
+        foreach ($poses as $pose => $_object) {
+            $number = $pose === 'perched' ? 1 : ($pose === 'flight' ? 2 : (int)substr($pose, 8));
+            $expected[] = $slug . ($number === 1 ? '' : '-' . $number);
+        }
     }
     sort($expected, SORT_STRING);
     $actual = array_keys($dims);

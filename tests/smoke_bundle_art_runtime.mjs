@@ -6,7 +6,7 @@ import vm from 'node:vm';
 
 const apt = fs.readFileSync(new URL('../avian/frontend/apt.js', import.meta.url), 'utf8');
 const index = fs.readFileSync(new URL('../avian/frontend/index.html', import.meta.url), 'utf8');
-assert.match(index, /[.]\/apt[.]js[?]v=r240["']/,
+assert.match(index, /[.]\/apt[.]js[?]v=r241["']/,
   'the shell requests the content-revision-aware frontend under a fresh cache key');
 const start = apt.indexOf('function bundleRecord(');
 const end = apt.indexOf('function tuning(', start);
@@ -160,6 +160,15 @@ const context = vm.createContext({
 });
 context.window = context;
 vm.runInContext(runtime, context, { filename: 'apt-bundle-art-runtime.js' });
+
+const numbered = payload(externalA);
+numbered.active.pose_count = 4;
+for (const pose of [2, 11, 32]) {
+  numbered.dims['corvus-corax-' + pose] = [10, 10];
+  numbered.masks['corvus-corax-' + pose] = { w: 1, h: 1, bits: 'gA==' };
+}
+assert.doesNotThrow(() => context.validateBundleAssets(numbered),
+  'numbered poses count as one species when loading the active inventory');
 
 queued.push(response(503, { ok: false }));
 assert.equal(await context.loadTablesAtStartup(), false);
