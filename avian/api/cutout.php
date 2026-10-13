@@ -36,10 +36,13 @@ if (!preg_match('/\A[A-Z][A-Za-z-]{1,39}(?: [a-z][A-Za-z-]{1,39}){1,3}\z/D', $sc
 $slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($sci));
 $slug = trim((string)$slug, '-');
 
-// pose=1 (default) is perched. pose=2 is flight. Clamp to a two-digit
-// positive integer so a malformed ?pose= can't break the path.
-$pose = (int)($_GET['pose'] ?? 1);
-if ($pose !== 2) $pose = 1;
+// Legacy bundles use 1/2 for perched/flight; historical bundles number choices.
+$poseValue = $_GET['pose'] ?? '1';
+if (!is_string($poseValue) || !preg_match('/\A(?:[1-9]|[12][0-9]|3[0-2])\z/D', $poseValue)) {
+    http_response_code(400);
+    exit("invalid illustration choice");
+}
+$pose = (int)$poseValue;
 $poseSuffix = $pose === 1 ? '' : "-$pose";
 
 require_once __DIR__ . '/bundle-runtime.php';

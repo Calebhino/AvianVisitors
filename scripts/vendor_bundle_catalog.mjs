@@ -13,8 +13,17 @@ const sourceArg = process.argv.slice(2).find((arg) => arg !== '--check');
 const source = path.resolve(sourceArg || process.env.BUNDLE_SITE_PUBLIC || path.join(repo, 'assembled/site/public'));
 const previewPrefix = '/assets/bundle-catalog/bundle-previews/';
 
+const dedicatedWorker = fs.existsSync(path.join(source, 'bundles/index.html'));
+function sourcePath(relative) {
+  if (!dedicatedWorker) return path.join(source, relative);
+  if (relative === 'bundles.html') return path.join(source, 'bundles/index.html');
+  if (relative === 'catalog/bundles-v1.json') return path.join(source, relative);
+  return path.join(source, 'bundles/assets', relative);
+}
 function read(relative) {
-  return fs.readFileSync(path.join(source, relative));
+  const raw = fs.readFileSync(sourcePath(relative));
+  return dedicatedWorker && /\.(?:js|css|html|json)$/.test(relative)
+    ? Buffer.from(raw.toString('utf8').replaceAll('/bundles/assets/', '/').replaceAll(String.raw`\/bundles\/assets\/`, String.raw`\/`)) : raw;
 }
 
 function text(relative) {
@@ -80,7 +89,7 @@ function staticSnapshot(name, relative) {
   return Buffer.from(`window.${name} = ${JSON.stringify(parsed)};\n`);
 }
 
-if (!fs.existsSync(path.join(source, 'bundles.html'))) {
+if (!fs.existsSync(sourcePath('bundles.html'))) {
   console.error(`Bundle catalog source was not found at ${source}`);
   process.exit(2);
 }
@@ -103,7 +112,7 @@ const outputs = new Map([
   ['fonts/OFL-Caveat.txt', read('fonts/OFL-Caveat.txt')],
 ]);
 
-const previewDir = path.join(source, 'bundle-previews');
+const previewDir = sourcePath('bundle-previews');
 function previewFiles(directory, prefix = '') {
   const files = [];
   for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {

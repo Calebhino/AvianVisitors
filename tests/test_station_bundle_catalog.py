@@ -30,6 +30,7 @@ class StationBundleCatalogTests(unittest.TestCase):
             {
                 "official-western-us-woodblock",
                 "official-western-us-impressionist",
+                "official-birds-of-america",
             },
         )
         self.assertEqual(packs["official-western-us-woodblock"]["availability"], "included")
@@ -41,9 +42,10 @@ class StationBundleCatalogTests(unittest.TestCase):
         for pack in packs.values():
             with self.subTest(pack=pack["id"]):
                 self.assertEqual(pack["review"], "official")
-                self.assertEqual(pack["species_count"], 333)
-                self.assertEqual(len(pack["species"]), 333)
-                self.assertEqual(len(set(pack["species"])), 333)
+                count = 439 if pack["id"] == "official-birds-of-america" else 333
+                self.assertEqual(pack["species_count"], count)
+                self.assertEqual(len(pack["species"]), count)
+                self.assertEqual(len(set(pack["species"])), count)
                 self.assertEqual(len(pack["previews"]), 6)
 
     def test_catalog_has_no_executable_or_caller_selected_install_surface(self) -> None:

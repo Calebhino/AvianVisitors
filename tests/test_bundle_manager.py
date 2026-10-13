@@ -245,6 +245,27 @@ class BundleValidationTests(unittest.TestCase):
         self.assertEqual(selected["reference"]["version"], "1.10.0+build.2")
         self.assertEqual(exact["reference"]["version"], "1.9.0")
 
+    def test_v2_variants_preserve_all_choices_and_reject_ambiguous_paths(self) -> None:
+        value = copy.deepcopy(self.fixture.manifest)
+        value["format_version"] = 2
+        value["license"] = {"spdx": "LicenseRef-NoC-US", "file": "LICENSES/NoC-US.txt"}
+        bird = value["species"][0]
+        original = bird["poses"][0]
+        bird["poses"] = [{**original, "id": f"variant-{n}",
+                          "file": bundle_manager.pose_path(bird["scientific_name"], f"variant-{n}")}
+                         for n in range(1, 33)]
+        checked = bundle_manager.validate_manifest(value)
+        self.assertEqual(checked["pose_count"], 32)
+        self.assertEqual(checked["format_version"], 2)
+        for bad in ("variant-0", "variant-33", "variant-01", "../bird", "flight"):
+            invalid = copy.deepcopy(value)
+            invalid["species"][0]["poses"][0]["id"] = bad
+            with self.subTest(bad=bad), self.assertRaises(bundle_manager.BundleError):
+                bundle_manager.validate_manifest(invalid)
+        value["format_version"] = 1
+        with self.assertRaises(bundle_manager.BundleError):
+            bundle_manager.validate_manifest(value)
+
     def test_manifest_is_normalized_and_verifies_against_catalog(self) -> None:
         manifest = bundle_manager.validate_manifest(copy.deepcopy(self.fixture.manifest))
         catalog = bundle_manager.validate_catalog(copy.deepcopy(self.fixture.catalog))
@@ -913,6 +934,30 @@ class BundleLifecycleTests(unittest.TestCase):
             job["total"] = 1
         bundle_manager.atomic_json(self.root / "job.json", job)
 
+    def test_v2_install_keeps_eleventh_choice_and_runtime_geometry(self) -> None:
+        bird = self.fixture.manifest["species"][0]
+        raw = self.fixture.images["perched"]
+        bird["poses"] = [{"id": f"variant-{n}", "file": bundle_manager.pose_path(bird["scientific_name"], f"variant-{n}"),
+                          "sha256": sha256(raw), "bytes": len(raw)} for n in range(1, 12)]
+        self.fixture.manifest["format_version"] = 2
+        self.fixture.manifest["license"] = {"spdx": "LicenseRef-NoC-US"}
+        self.fixture.manifest_raw = bundle_manager.canonical_json(self.fixture.manifest)
+        self.fixture.manifest_hash = sha256(self.fixture.manifest_raw)
+        pack = self.fixture.pack
+        pack["license"] = "LicenseRef-NoC-US"
+        pack["archive_bytes"] = len(raw) * 11
+        pack["manifest"] = {"url": bundle_manager.MANIFEST_BASE_URL + self.fixture.manifest_hash + ".json",
+                            "sha256": self.fixture.manifest_hash, "bytes": len(self.fixture.manifest_raw)}
+        pack["previews"][0]["pose"] = "variant-1"
+        self.fixture.publish(self.publication)
+        self.catalog_path.write_bytes(bundle_manager.canonical_json(self.fixture.catalog))
+        reference = self.install_fixture()
+        self.assertEqual(bundle_manager.load_job()["state"], "complete")
+        index = bundle_manager.validate_runtime_reference(reference)
+        self.assertEqual(len(index["assets"][bundle_manager.scientific_slug(bird["scientific_name"])]), 11)
+        dims = json.loads((bundle_manager.pack_directory(reference) / "dims.json").read_text())
+        self.assertIn(bundle_manager.scientific_slug(bird["scientific_name"]) + "-11", dims)
+
     def test_install_activate_preview_rollback_reactivate_and_remove(self) -> None:
         initialized = bundle_manager.initialize()
         self.assertEqual(initialized["active"], bundle_manager.builtin_ref())
@@ -1015,7 +1060,7 @@ class BundleLifecycleTests(unittest.TestCase):
         species_slug = bundle_manager.scientific_slug(scientific_name)
         flight_slug = bundle_manager.pose_slug(scientific_name, "flight")
         self.assertEqual(len(species_slug), bundle_manager.SCI_NAME_MAX)
-        self.assertEqual(len(flight_slug), bundle_manager.POSE_SLUG_MAX)
+        self.assertEqual(len(flight_slug), bundle_manager.SCI_NAME_MAX + 2)
         self.assertEqual(len(f"{flight_slug}.png"), 169)
 
         bird = self.fixture.manifest["species"][0]
@@ -1143,7 +1188,7 @@ class BundleLifecycleTests(unittest.TestCase):
         bundle_manager.checked_geometry(geometry)
 
         with self.assertRaises(bundle_manager.BundleError) as raised:
-            bundle_manager.inspect_png_command(label + "x")
+            bundle_manager.inspect_png_command(label + "xx")
         self.assertEqual(raised.exception.code, "invalid_text")
 
     def assert_gc_preserves_active_objects_with_damaged_file(self, filename: str) -> None:

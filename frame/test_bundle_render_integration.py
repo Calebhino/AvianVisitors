@@ -67,6 +67,21 @@ class FakeRoute:
 
 
 class FrameBundleLocationTests(unittest.TestCase):
+    def test_numbered_cutout_resolves_exact_choice(self):
+        resolver = mock.Mock(return_value=Path('/verified/bird-11.png'))
+        handler = shoot._make_cutout_handler(resolver=resolver, errors=[])
+        base = 'http://birdnet.local/avian/api/cutout.php?sci=Corvus%20corax&pose='
+        route = FakeRoute(base + '11')
+        handler(route)
+        resolver.assert_called_once_with('Corvus corax', 'variant-11')
+        self.assertEqual(route.fulfilled['path'], '/verified/bird-11.png')
+        resolver.reset_mock()
+        for choice in ('0', '33', '01', '11suffix'):
+            route = FakeRoute(base + choice)
+            handler(route)
+            self.assertEqual(route.fulfilled['status'], 400)
+        resolver.assert_not_called()
+
     def test_cutouts_are_bound_to_the_active_manifest_and_selection(self):
         active = {"revision": "a" * 64, "content_revision": "b" * 64}
         resolver = mock.Mock(return_value=Path("/verified/corvus-corax.png"))

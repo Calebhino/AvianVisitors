@@ -3,6 +3,96 @@
   "format": "avian-bundle-preview-geometry",
   "format_version": 1,
   "items": {
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-0.png": {
+      "dims": [
+        512,
+        445
+      ],
+      "mask": {
+        "bits": "AAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAABAAAAAAAAAAAAAAAcAAAAAAAAAAAAAADwAAAAAAAAAAAAAAeAAAAAAAAAAAAAAH4AAAAAAAAAAAAAA/gAAAAAAAAAAAAAH8AAAAAAAAAAAAAB/gAAAAAAAAAAAAAP+AAAAAAAAAAAAAD/wAAAAAAAAAAAAAf/gAAAAAAAAAAAAH/+AAAAAAAAAAAAB//+AAAAAAAAAAAAP//+AAAAAAAAAAAB////AAAAAAAAAAAf///+AAAAAAAAAAD////8AAAAAAAAAAf////4AAAAAAAAAD/////wAAAAAAAAAf/////AAAAAAAAAD/////8AAAAAAAAAf/////4AAAAAAAAD//////gAAAAAAAAP/////+AAAAAAAAB//////4AAAAAAAAP//////gAAAAAAAA///////AAAAAAAAH//////8AAAAAAAAf//////wAAAAAAAB///////AAAAAAAAD//////+AAAAAAAAP//////4AAAAAAAA///////AAYAAAAAD/////8AAPAAAAAAP/////gAP4AAAAAAf////8AP/AAAAAAB/////g//4AAAADAD////////AAAAB//////////wAAAAP/////////4AAAAD/////////4AAAAB/////////gAAAAAf///////+AAAAAAH8GP////+AAAAAAAAAgY//x/wAAAAAAAAIBCAAP+AAAAAAAACAIQAB/wAAAAAAAAwAAAAP+AAAAAAAAcAAAAB/wAAAAAAAeAAAAAP/AAAAAAAEgAAAAD/4AAAAAADmAAAAAf/AAAAAAD4wAAAAD/4AAAAAB/HAAAAAf/AAAAAA/w8AAAAD/8AAAAAf+HwAAAAf/gAAAAP/g+AAAAD/8AAAAD/8P4AAAAf/gAAAA//B/gAAAD/8AAAAP/wP8AAAAf/wAAAH/+B/wAAAD/+AAAB//gP+AAAAf/wAAA//wB/4AAAD/+AAAH/8AP/AAAAf/wAAB//AD/8AAAD/+AAAf/wAP/gAAAf/wAAH/4AB/8AAACEAAAB/+AAP/gAAAAAAAAP/AAB/8AAAAAAAAD/gAAH/gAAAAAAAAfwAAA/8AAAAAAAAHAAAAH/gAAAAAAAAAAAAAf8AAAAAAAAAAAAAD/gAAAAAAAAAAAAAP4AAAAAAAAAAAAAB+AAAAAAAAAAAAAAHwAAAAAAAAAAAAAAcAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "encoding": "msb-first-row-major-base64",
+        "h": 81,
+        "sha256": "4862234c638583598a2d6032b9ab71193a5a905d1ef929347866f6764e006077",
+        "w": 93
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-0.2c483c98f416afb1810a3b34368d1f83ff2a8dd89eead79413e8b99a31a973bd.png",
+      "sha256": "2c483c98f416afb1810a3b34368d1f83ff2a8dd89eead79413e8b99a31a973bd"
+    },
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-1.png": {
+      "dims": [
+        382,
+        512
+      ],
+      "mask": {
+        "bits": "AAAAAAA/gAAAAAAAAD//4AAAAAAAD///4AAAAAAB////AAAAAAA////4AAAAAAf///+AAAAAAP////gAAAAAH///+AAAAAAD///8AAAAAAB///8AAAAAAAf///AAAAAAAP/////8AAAAD//////wAAAA///////AAAAP//////8AAAD///////wAAA////////AAAP///////+AAH////////4AB/3///////wAP5///////+AD+f///////4A+H////////gPB////////8Pwf////////j//////////8D//////////g//////////8D//////////gf/////////+B//////////wP/////////8A//////////wD/////////8A//////////gP/////////8B//////////gP///////9j8AX//////sAPgA//////8AB8ACf/////AAPgAH/////4AB8AB//////AAPgAP/////wAD8AB/////8AAfgAP/////ACD4AA/////wAIfAAD////8ABDwAAH/7//AAE+AAAf+f/gAAnwAAAfj/4AAD8AAADwAGAAAfgAAAwAAwAAL4AAQOAAMAAD/AAAjgABgAAfwAACcAAYAAl+AAAJgADAAE/gABgsAAwAA38AADLgAGAAC/yADP8ABgAcf/YB//gAMA8Z/5Af7/SDATzv/oB//+QYADm//B///wXAQOf/8Hz9+G4MGZ//g////jiBtv/8P///8MgQX//w////g4EJ//+f////TBAH//z////+8fi//+f////9/xv//z/////Pjn//+f////+YP///z/////Dg///+f////wmd///z/////+////+f//////////z//////////+f//////////z//////////+f//////////z///////////f//////////z//////////+f//////////z//////////+f//////////z//////////+f//////////z//////////+///////////z//////////+f//////////wA=",
+        "encoding": "msb-first-row-major-base64",
+        "h": 93,
+        "sha256": "1584c758947c8d9a7f60c20c568a7c82a6d75ca37895ab36c721263628581b9e",
+        "w": 69
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-1.f245ada4b62f9c0f547fa2e8718fb69346546db0fc120bbd5179dc3601b10160.png",
+      "sha256": "f245ada4b62f9c0f547fa2e8718fb69346546db0fc120bbd5179dc3601b10160"
+    },
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-2.png": {
+      "dims": [
+        416,
+        512
+      ],
+      "mask": {
+        "bits": "AAAAAAAAA/4AAAAAAAAAAD/wBgAAAAAAAA//+4AAAAAAAAD//+AAEAAAAAAP//2AAYAAB4AB///+AB0AB/wAN///wAH4AP/Dgv///AAfwAf+/2///4AB/gH////P//gAP/AP//7Q//8AA/+Df/+MD//gAD/8f/v8g//+AAP/7/+/6P//4AB//////5///gAP//////n//8AB//////8f//wAP//////z///AB//////////8AP//////+P//gAP//////5//+AAf//////3//4AA//////////gAA///////3/8AAB///////f/wAAH//////9/+AAAf+f/////+QAAD34f/////wAAAM/9f/////AAAAH/5/z///+cAAA//3/k////gAAH////35//8AAAP///+QP//gAAYf///+A//8AAB7////4D//gAAH/////gH/8AAA//////Af/gAAD/////+Af8AAh////P/8B/oACP///8f/wf8wAQf///j+fj/CABD///8775f/wAIH///8n/H//ABB////if4H/8AEP///+f/g//8Ag////5//3//wEB//////////BgH////+////8IAf/////////jwB//////////+AH//////////wA///////////gD///////////AP//////////4A///////////AD//////////+AH//////////8A///////////wD////////7//gP////////v/+A////////g//wD///////4D//gH/////8/gH/4Af/////B+Af9gD/////4D4dnwAH/////4Dz5+AAf/////AG/34AA/////8AX/1AAD/////wC//AAAH/////Ad/+AAAP////8B//8AAA/////gH//gAAD+////Af/+AAAPg///8D//gAAAYH///wH/+AAABB///+Ab/wAAAAP///6B//YgAAAf///gH//+AAAB///8AH//wAAAf///wAH//AAAB///+AAP//gAAD///gACf//wAAD///AAc///AAAc8/+AAx+AAAAADD/wADGAAAAAAAP/AAiMAAAAAAA/4AAG8AAAAAAL/gAAAwAAAAAAP4AAABwAAwAAB3gAeAA+B+AAAAMAD/AD/+AAAAAgAf/hwAAAAAAAAAAIEAAAA=",
+        "encoding": "msb-first-row-major-base64",
+        "h": 93,
+        "sha256": "508a28bd1726b9803d23d5b6722b1afdb66fe63d2d8e369d86a226bffe8c38d2",
+        "w": 76
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-2.5cc79f6b40f7cae6d4f967198b22cc050283395e41a2a37718c6ba89ee4263ac.png",
+      "sha256": "5cc79f6b40f7cae6d4f967198b22cc050283395e41a2a37718c6ba89ee4263ac"
+    },
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-3.png": {
+      "dims": [
+        440,
+        512
+      ],
+      "mask": {
+        "bits": "AAAAAAAAAPgAAAAAAAAAAAf/gAAAAAAAAAAf/8AAAAAAAAAAf//gAAAAAAAAAP///AAAAAAQBgH///wAAAAAMAwH///8AAAAADAIH////AAAAAAxOP////gAAAAAM3////vwAAAAAD/////z8AAAAAB/////48AAAAAAf////4OAAAAAAH//P/8DAAAAAAv/+D/+EPAAAAAP/+B///34AAAAB//AX///+AAAAAf/gAL///gAAAAA/4AAb//wAAAAAF/AACf/8wAAAAAHwgAT/+BgAAAAAcJ8D3/BwAAAAAnD/g9/hAAAAAASw/4efwiAAAAAMsP+fP4QwAAAAADh//HGAcAAAAAI4f/jjgXAAAAASOD/w44HwAAAAGx//4QeH/AAAAA+f/+Afh/wAAAAPn/+APwHwAAAAD///AP+B8AAAAM///hH/gxAAAAGH///7/4AAAAADg/////+AAAAAD4D/////gAAABx/AP////wAAAA//xP////8AAAAf/8B/////AAAAH//A/////gAAAA8/wP////4AAAACP8H////8AAAAAD///////gAAAAAf//////4DAAAAH//////+HgAAAA////////wAAAAP///////wAAADh///////4AAAD4f//////8AAAA3H///////gAAAZ5///////8AAAOOf//////3AAADJz//////4wAAAyE//////+IAAAMAH//////AAAACIB//////wAAAAgA//////8AAAAAAP/////6AAAAABD//////gAAA8AD////z/QAAAD/A////5+gAAAAf8P///9/pgAAAB/r/////4YAAAAP7/////9ngAAAH8f////+f4AAAf+P//////+AAAf8f//5////gAAAoH//wP///4AAAAB//4B///8AAAAAX/+cf///AAAAAB//+D/8/+AAAAA///B/+D/AAAAAf//gf/h/gAAAAP//wD/4fAAAAAD//8A/+HgAAAAB//+APfx4AAAAA///ADn8cAAAAAP//gAh/mAAAAAH//wgIP5gAAAAB//8YAB+AAAAAAf/+MAAfgAAAAAP//CAAD4AAAAAP//4gAAfAAAAAH//+MAAD4AAAAB///mAAAOAAAAAf///wAABgAAAAD///cAAAMAAAAB///wAAAAAAAAAf//8AAAAAAAAAH/+/AAAAAAAAAD//PgAAAAAAAAA//h4AAAAAAAAAP/4AAAAAAAAAA",
+        "encoding": "msb-first-row-major-base64",
+        "h": 93,
+        "sha256": "f474aaee482f387c0bcd0592abe2791b58efaab495200c4f7b96b6122a559ac2",
+        "w": 80
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-3.74c11da2cc1f0bdebe5238ffd07e7df5686165ddcac92304ca5eea0f1a2c99d6.png",
+      "sha256": "74c11da2cc1f0bdebe5238ffd07e7df5686165ddcac92304ca5eea0f1a2c99d6"
+    },
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-4.png": {
+      "dims": [
+        361,
+        512
+      ],
+      "mask": {
+        "bits": "AAAAAAAAAAAAAAAAAAACAAAAAAAAAAGAAAAAAAAAAGBAAAAAAAAAPxAAAAAAAAB/5AAAAAAHAAf9AAAAAH4AAP8AAA/A/AH+H8gAAf9gAADj+gAAACAAAAR/gAAAAwAAAB/wAAADgAAAA+QAAAGAAADA+AAAAAAAALA+wAAAAAAADAf4AACAAAAQgfoAAGwAAAQwfwAAJwAAAgQfwACWfAIgYQ/wAHoIAJgRR/wAeIQAJAZP/4AwBQAMPz//4BABwAMYH//wAAAQAIYP//wAACACIx///wAACAEEz///wAwCAcGP///wA4DAwE////wAYCBgB////wAYWDAL////wI4eGAP////wM4cPBf////wM4HnA/////4M4OHk/////4c98Bj/////4ecIYn/////4eeMzv/////4P/w+f/////4PMnw//////4PMFh//////4PMJj//////4HsbX//////wHs4P//////wH/5///////wH/pf//////wD/J///////wH/J///////gH+J///////gP+r///////gP6j///////gD/v///////AD+v///////AF///////z+AC///////h+AD///////D8AB///////D+AA//////+D6AF//////8D3AF//////szlgD//////Z9LOD//////Rmx8H/////+xjvgHf////+xGeQHP/////kIy0P/////+KTigP/////++mAgP////+e/EGgL////8P/IGAH///9/H/ZEAF/////H/xOAD/////v//+AD/////////AH/////P///sH/////v///+P/////////8P/////////+f/////////+f/////////8f/////////4f/////////8P/////////8P/////////8P/////////8f/////////8f/////////+f/////////+f/////////+f/////////+//////////+f/////////+P3//8nnfhnYAAAQAAAAAAAA",
+        "encoding": "msb-first-row-major-base64",
+        "h": 93,
+        "sha256": "81618a6cc9547643647657ae7cefe11d7c4e43c0f89ba65a8708fa922b8dd268",
+        "w": 66
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-4.24f6d54b2f24104c2c75a30705cf6fd9cd82d8b814a850dbf5788d969c9023a3.png",
+      "sha256": "24f6d54b2f24104c2c75a30705cf6fd9cd82d8b814a850dbf5788d969c9023a3"
+    },
+    "/assets/bundle-catalog/bundle-previews/birds-of-america-5.png": {
+      "dims": [
+        427,
+        512
+      ],
+      "mask": {
+        "bits": "AAAAAAAAAAAAAQAAAIAAAAAAAGIAAAIAAAAAAAMEAAAYAAAAAAAYCAAAQAAAAAAAwCAIAQAAAAAAAgBAfAwAAAAAABAAg+AgAAAAAADAAh8AgAAAAAACAAT8AgAAAAAACAAT+BgAAAAAAEAAD+BAMgAAAAEAAD+BAd/AAAAMAAJ+Hkd/wAAAIAAJ+///+wAAAIAAI+///+YAAAYAAIf///6MAAB4ABoN7/+bFAACYBH/H+R/PjgAEwDH/3+w4/jwAAgGH//cADfh4AxgMH//PgH/h8B/AYD///gf/++H/gwDz//vf3/ic/xgDD/+P/n/x+/3AB//4f+/3wff+AB//w+///8PH8AB/Dh///4PHk4ABwHD///4H/tgABkPD///8H+bAAAEeH///4n/b/gAAcP///wT/3/wAAcf+4P4Y4//wAAM//wD8cEv/wACB//AHue/fn4AAB2+AHHP+XAYAADgYANz/+0AAAACA4AD5/7g4AAAAD4AD8f7v8AAAAHgXH+f/f+AABAHg7////f+AABMPx//h///+AAAYP+f+B//4+AAA4P//+wP/wCAABwP//+4v/gAAADwHv//5//+AAADgDB//j///AAAGgAB//z///gAANAAA////3/gAAAAAD////z/gAAAABv/////PgAAAAD/f///zngAAAAD+P//1/5AAADAD8P////4AAAGgD4/////8AAAHgH4/n///8AAAPgP//v////AAAPgf//////8gEAfAf+f///34AMAeA/vjf///AAIA4A9/+////AAQBwAH//H///GAgAAA///BP//cAgAAB/+5Av//IBAAABv74B///YBAAAAOd/j///3jAAAAYf8z/+/f6AAAB8/8X///f8AAAB/9+GD9//0AAAH/98oB9//4AAAOP5/5x//f4AAP+f7///5/fwAAH+YH//38ffwAAA/YH//z8PfgAAB//3//h+DAAAAD//3k/h+AgAAAD//zh//6AAAAAH//7h/z4AAAAAH//4h/z8AAAAAAv/0A/D8AAAAAH/wGAw9+AAAAAP/4DD59wAAAAAHv8CD55wAAAAAHfOHH554AAAAAEDj/B7u4AAAAAADh+Dif8AAAAAADg/DAf8AAAAAABg/AAf8AAAAAAAAGAAd+AAAAAAAAAAAB8AAAAAAAAAAAA4AAAAAAAAAAAAYAAAAAAAAAAAAAAAAAA==",
+        "encoding": "msb-first-row-major-base64",
+        "h": 93,
+        "sha256": "c72477e4b6a20b2b87ce1ac065e85659739c17352b39460c7731e899521944ec",
+        "w": 78
+      },
+      "render_url": "/assets/bundle-catalog/bundle-previews/collage/birds-of-america-5.9443d7986da455bc2d83e957e528a1b09fa27bb45e0cd2ee15169e917bbaa7e5.png",
+      "sha256": "9443d7986da455bc2d83e957e528a1b09fa27bb45e0cd2ee15169e917bbaa7e5"
+    },
     "/assets/bundle-catalog/bundle-previews/official-western-us-impressionist-0.png": {
       "dims": [
         882,

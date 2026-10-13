@@ -76,7 +76,7 @@ CONFIG_MAX = 256 * 1024
 SELECTION_MAX = 2 * 1024 * 1024
 DEFAULT_CONFIG = "~/.birdframe/config.toml"
 DEFAULT_BUNDLE_ROOT = "~/.birdframe/bundles"
-LICENSES = frozenset({"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-SA-4.0"})
+LICENSES = frozenset({"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-SA-4.0", "LicenseRef-NoC-US"})
 
 
 class BundleError(RuntimeError):
@@ -808,7 +808,7 @@ def _validate_catalog_preview(value: Any) -> dict[str, Any]:
     if (
         SCI_RE.fullmatch(scientific) is None
         or not isinstance(value["pose"], str)
-        or value["pose"] not in {"perched", "flight"}
+        or value["pose"] not in ALL_POSES
         or isinstance(size, bool)
         or not isinstance(size, int)
         or not 67 <= size <= IMAGE_MAX
@@ -1234,8 +1234,19 @@ def _slug(scientific_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", scientific_name.lower()).strip("-")
 
 
+VARIANT_POSES = frozenset(f"variant-{number}" for number in range(1, 33))
+ALL_POSES = frozenset({"perched", "flight"}) | VARIANT_POSES
+
+
+def _pose_suffix(pose: str) -> str:
+    if pose not in ALL_POSES:
+        raise BundleError("invalid illustration choice", "invalid_manifest")
+    number = int(pose.split("-")[1]) if pose in VARIANT_POSES else (2 if pose == "flight" else 1)
+    return f"-{number}" if number > 1 else ""
+
+
 def _pose_slug(scientific_name: str, pose: str) -> str:
-    return _slug(scientific_name) + ("-2" if pose == "flight" else "")
+    return _slug(scientific_name) + _pose_suffix(pose)
 
 
 def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
@@ -1250,11 +1261,13 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
         "bundle manifest",
         "invalid_manifest",
     )
-    if value["format"] != MANIFEST_FORMAT or value["format_version"] != 1:
+    if value["format"] != MANIFEST_FORMAT or type(value["format_version"]) is not int or value["format_version"] not in {1, 2}:
         raise BundleError("bundle manifest format is unsupported", "invalid_manifest")
     if _checked_id(value["id"]) != pack["id"] or _checked_version(value["version"]) != pack["version"]:
         raise BundleError("manifest identity does not match the catalog", "identity_mismatch")
 
+    manifest_version = value["format_version"]
+    allowed_poses = {"perched", "flight"} if manifest_version == 1 else VARIANT_POSES
     name = _checked_name(value["name"], "bundle name", 90)
     description = _checked_optional_public_text(
         value.get("description", "Community-maintained bird artwork."),
@@ -1316,6 +1329,8 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
     spdx = license_record["spdx"]
     if not isinstance(spdx, str) or spdx not in LICENSES:
         raise BundleError("manifest license is unsupported", "invalid_manifest")
+    if manifest_version == 1 and spdx == "LicenseRef-NoC-US":
+        raise BundleError("historical rights require manifest v2", "invalid_manifest")
     if "file" in license_record and license_record["file"] and not isinstance(
         license_record["file"], str
     ):
@@ -1372,6 +1387,7 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
     seen_paths: set[str] = set()
     object_sizes: dict[str, int] = {}
     total = 0
+    references = 0
     for bird in species:
         if not isinstance(bird, dict):
             raise BundleError("manifest species row is invalid", "invalid_manifest")
@@ -1396,7 +1412,7 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
             bird.get("common_name"), "common name", 100
         )
         poses = bird["poses"]
-        if not isinstance(poses, list) or not 1 <= len(poses) <= 2:
+        if not isinstance(poses, list) or not 1 <= len(poses) <= (2 if manifest_version == 1 else 32):
             raise BundleError("manifest poses are invalid", "invalid_manifest")
         pose_ids: set[str] = set()
         normalized_poses: list[dict[str, Any]] = []
@@ -1410,7 +1426,7 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
                 "manifest pose",
                 "invalid_manifest",
             )
-            if not isinstance(pose["id"], str) or pose["id"] not in {"perched", "flight"}:
+            if not isinstance(pose["id"], str) or pose["id"] not in allowed_poses:
                 raise BundleError("manifest pose is invalid", "invalid_manifest")
             pose_id = pose["id"]
             if pose_id in pose_ids:
@@ -1428,6 +1444,9 @@ def _validate_manifest(raw: bytes, pack: dict[str, Any]) -> dict[str, Any]:
                 raise BundleError("manifest object sizes disagree", "invalid_manifest")
             object_sizes[digest] = size
             total += size
+            references += 1
+            if references > SPECIES_MAX * 2:
+                raise BundleError("bundle has too many illustration choices", "bundle_too_large")
             if total > TOTAL_MAX:
                 raise BundleError("bundle is too large", "bundle_too_large")
             assets.setdefault(species_slug, {})[pose_id] = {
@@ -1737,7 +1756,7 @@ def _install(root: Path, pack: dict[str, Any], basis: dict[str, Any] | None = No
                 raw = _download(_object_url(digest), IMAGE_MAX, size)
                 if _sha(raw) != digest:
                     raise BundleError("illustration checksum is incorrect", "object_hash")
-            slug = species_slug + ("-2" if pose_id == "flight" else "")
+            slug = species_slug + _pose_suffix(pose_id)
             dims[slug], masks[slug] = _geometry(raw, slug)
             if not stored_valid:
                 _safe_dir(target.parent, create=True)
@@ -1863,7 +1882,7 @@ def _validate_install_contents(
     dimensions = _json(_safe_file(directory / "dims.json", TABLE_MAX), "installed dimensions")
     masks = _json(_safe_file(directory / "masks.json", TABLE_MAX), "installed masks")
     expected_slugs = {
-        species_slug + ("-2" if pose_id == "flight" else "")
+        species_slug + _pose_suffix(pose_id)
         for species_slug, poses in index["assets"].items()
         for pose_id in poses
     }
@@ -2033,9 +2052,10 @@ class ActiveBundle:
         }
 
     def resolve(self, scientific_name: str, pose: str) -> Path | None:
-        if not isinstance(scientific_name, str) or pose not in {"perched", "flight"}:
+        if not isinstance(scientific_name, str) or pose not in ALL_POSES:
             return None
-        item = self.index["assets"].get(_slug(scientific_name), {}).get(pose)
+        choices = self.index["assets"].get(_slug(scientific_name), {})
+        item = choices.get(pose) or choices.get("variant-2" if pose == "flight" else "variant-1" if pose == "perched" else pose)
         if not isinstance(item, dict):
             return None
         digest = _checked_hash(item.get("sha256"))

@@ -598,10 +598,12 @@ function avian_bundle_index_for_state(array $state): ?array {
             || !is_array($poses) || array_is_list($poses)) {
             return null;
         }
-        if (array_diff(array_keys($poses), ['perched', 'flight']) !== []) return null;
+        if (count($poses) > 32) return null;
+        if ((isset($poses['perched']) || isset($poses['flight']))
+            && count(array_filter(array_keys($poses), fn($key) => str_starts_with($key, 'variant-'))) > 0) return null;
         if ($poses === []) return null;
         foreach ($poses as $pose => $object) {
-            if (($pose !== 'perched' && $pose !== 'flight')
+            if ((!is_string($pose) || !preg_match('/\A(?:perched|flight|variant-(?:[1-9]|[12][0-9]|3[0-2]))\z/D', $pose))
                 || !is_array($object) || array_is_list($object)
                 || array_diff(array_keys($object), ['sha256', 'bytes']) !== []) {
                 return null;
@@ -703,7 +705,10 @@ function avian_bundle_state_for_revision(string $revision, ?string $content = nu
 /** @return array{sha256:string,bytes:int}|null */
 function avian_bundle_resolve_object(array $index, string $slug, int $pose): ?array {
     if (!avian_bundle_slug_valid($slug)) return null;
-    $poseName = $pose === 2 ? 'flight' : 'perched';
+    if ($pose < 1 || $pose > 32) return null;
+    $poses = $index['assets'][$slug] ?? [];
+    $poseName = isset($poses['variant-' . $pose]) ? 'variant-' . $pose
+        : ($pose === 2 ? 'flight' : ($pose === 1 ? 'perched' : ''));
     $object = $index['assets'][$slug][$poseName] ?? null;
     if (!is_array($object)) return null;
     $sha = $object['sha256'] ?? null;
@@ -775,7 +780,7 @@ function avian_bundle_read_table(array $active, string $kind): ?array {
     );
     if ($table === null || count($table) > AVIAN_BUNDLE_MAX_OBJECTS) return null;
     foreach ($table as $key => $value) {
-        $base = str_ends_with((string)$key, '-2') ? substr((string)$key, 0, -2) : (string)$key;
+        $base = preg_replace('/-(?:[2-9]|[12][0-9]|3[0-2])$/', '', (string)$key);
         if (!is_string($key) || !avian_bundle_slug_valid($base)) return null;
         if ($kind === 'dims') {
             if (!is_array($value) || count($value) !== 2

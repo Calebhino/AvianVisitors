@@ -70,7 +70,7 @@ REVISION_RE = re.compile(r"^(?:included-woodblock-v1|[0-9a-f]{64})$")
 SCI_RE = re.compile(r"^[A-Z][A-Za-z-]{1,39}(?: [a-z][A-Za-z-]{1,39}){1,3}$")
 SCI_NAME_MAX = 163
 SCI_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)+$")
-POSE_SLUG_MAX = SCI_NAME_MAX + 2
+POSE_SLUG_MAX = SCI_NAME_MAX + 3
 REGION_RE = re.compile(r"^[A-Z]{2}(?:-[A-Z0-9]{1,8}){0,3}$")
 
 CATALOG_MAX = 2 * 1024 * 1024
@@ -99,9 +99,11 @@ MANIFEST_BASE_URL = f"{PUBLIC_BUNDLE_ORIGIN}/api/bundles/manifests/"
 MANIFEST_HOSTS = frozenset({"avianvisitors.com"})
 OBJECT_HOSTS = MANIFEST_HOSTS
 LIVE_CATALOG_HOSTS = frozenset({"avianvisitors.com"})
-LICENSES = frozenset({"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-SA-4.0"})
+LICENSES = frozenset({"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-NC-SA-4.0", "LicenseRef-NoC-US"})
 DEFAULT_COMMUNITY_DESCRIPTION = "Community-maintained bird artwork."
 POSES = frozenset({"perched", "flight"})
+VARIANT_POSES = frozenset(f"variant-{number}" for number in range(1, 33))
+ALL_POSES = POSES | VARIANT_POSES
 REVIEWS = frozenset({"official", "community"})
 ACTIONS = frozenset({"use", "install", "update", "activate", "remove", "rollback", "refresh"})
 CATALOG_URL = "https://avianvisitors.com/bundles"
@@ -336,8 +338,15 @@ def scientific_slug(scientific_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", scientific_name.lower()).strip("-")
 
 
+def pose_suffix(pose: str) -> str:
+    if pose not in ALL_POSES:
+        raise BundleError("invalid illustration choice", "invalid_pose")
+    number = int(pose.split("-")[1]) if pose in VARIANT_POSES else (2 if pose == "flight" else 1)
+    return f"-{number}" if number > 1 else ""
+
+
 def pose_slug(scientific_name: str, pose: str) -> str:
-    return scientific_slug(scientific_name) + ("-2" if pose == "flight" else "")
+    return scientific_slug(scientific_name) + pose_suffix(pose)
 
 
 def pose_path(scientific_name: str, pose: str) -> str:
@@ -355,9 +364,11 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
         {"description", "provenance"},
         "manifest",
     )
-    if value["format"] != FORMAT_MANIFEST or value["format_version"] != FORMAT_VERSION:
+    if value["format"] != FORMAT_MANIFEST or type(value["format_version"]) is not int or value["format_version"] not in {1, 2}:
         raise BundleError("unsupported bundle manifest", "unsupported_manifest")
 
+    manifest_version = value["format_version"]
+    allowed_poses = POSES if manifest_version == 1 else VARIANT_POSES
     style = plain_record(value["style"], "style")
     exact_keys(style, {"id", "name"}, set(), "style")
     coverage = plain_record(value["coverage"], "coverage")
@@ -376,6 +387,8 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
     exact_keys(license_record, {"spdx"}, {"file"}, "license")
     if not isinstance(license_record["spdx"], str) or license_record["spdx"] not in LICENSES:
         raise BundleError("bundle license is unsupported", "invalid_license")
+    if manifest_version == 1 and license_record["spdx"] == "LicenseRef-NoC-US":
+        raise BundleError("historical rights require manifest v2", "invalid_license")
     license_file = license_record.get("file")
     # Frozen v1 publication already proved that a truthy license.file names an
     # archive member. It is attribution metadata, carries no fetch authority,
@@ -444,7 +457,7 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
         species_seen.add(scientific_name)
         species_slugs_seen.add(species_slug)
         raw_poses = bird["poses"]
-        if not isinstance(raw_poses, list) or not 1 <= len(raw_poses) <= 2:
+        if not isinstance(raw_poses, list) or not 1 <= len(raw_poses) <= (2 if manifest_version == 1 else 32):
             raise BundleError("species poses are invalid", "invalid_pose")
         poses: list[dict[str, Any]] = []
         pose_seen: set[str] = set()
@@ -452,7 +465,7 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
             item = plain_record(raw_pose, "pose")
             exact_keys(item, {"id", "file", "sha256", "bytes"}, set(), "pose")
             pose = item["id"]
-            if not isinstance(pose, str) or pose not in POSES or pose in pose_seen:
+            if not isinstance(pose, str) or pose not in allowed_poses or pose in pose_seen:
                 raise BundleError("pose is invalid or repeated", "invalid_pose")
             pose_seen.add(pose)
             expected_file = pose_path(scientific_name, pose)
@@ -474,6 +487,8 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
                 }
             )
             pose_count += 1
+            if pose_count > OBJECTS_MAX:
+                raise BundleError("bundle has too many illustration choices", "bundle_too_large")
         species.append(
             {
                 "scientific_name": scientific_name,
@@ -486,7 +501,7 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
 
     return {
         "format": FORMAT_MANIFEST,
-        "format_version": FORMAT_VERSION,
+        "format_version": manifest_version,
         "id": checked_id(value["id"]),
         "version": checked_version(value["version"]),
         "name": clean_text(value["name"], 90, "bundle name"),
@@ -520,7 +535,7 @@ def validate_preview(raw: Any) -> dict[str, Any]:
     if (
         SCI_RE.fullmatch(scientific_name) is None
         or not isinstance(item["pose"], str)
-        or item["pose"] not in POSES
+        or item["pose"] not in ALL_POSES
         or isinstance(size, bool)
         or not isinstance(size, int)
         or not 67 <= size <= IMAGE_MAX
@@ -2025,14 +2040,14 @@ def load_index(
         ):
             raise BundleError("installed bundle slug is invalid", "invalid_install")
         poses = plain_record(raw_poses, "bundle poses")
-        if not poses or set(poses) - POSES:
+        if not poses or set(poses) - ALL_POSES or (set(poses) & POSES and set(poses) & VARIANT_POSES):
             raise BundleError("installed bundle poses are invalid", "invalid_install")
         for pose, raw_object in poses.items():
             item = plain_record(raw_object, "bundle object")
             exact_keys(item, {"sha256", "bytes"}, set(), "bundle object")
             size = item["bytes"]
             if (
-                pose not in POSES
+                pose not in ALL_POSES
                 or isinstance(size, bool)
                 or not isinstance(size, int)
                 or not 67 <= size <= IMAGE_MAX
@@ -2217,7 +2232,7 @@ def validate_runtime_reference(
     dims = read_json(directory / "dims.json", TABLE_MAX)
     masks = read_json(directory / "masks.json", TABLE_MAX)
     expected_slugs = {
-        species_slug + ("-2" if pose == "flight" else "")
+        species_slug + pose_suffix(pose)
         for species_slug, poses in index["assets"].items()
         for pose in poses
     }
@@ -3184,7 +3199,7 @@ def snapshot() -> dict[str, Any]:
                     "url": f"/avian/api/bundle-preview.php?id={urllib.parse.quote(pack['id'])}&index={index}",
                     "scientific_name": preview["scientific_name"],
                     "common_name": preview["common_name"],
-                    "pose": 2 if preview["pose"] == "flight" else 1,
+                    "pose": int(preview["pose"].split("-")[1]) if preview["pose"] in VARIANT_POSES else (2 if preview["pose"] == "flight" else 1),
                 }
             )
         packs.append(

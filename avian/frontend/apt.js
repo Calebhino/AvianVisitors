@@ -912,7 +912,7 @@
       Object.keys(parsed).slice(0, 512).forEach(function (sci) {
         var name = sci.trim();
         var pose = +parsed[sci];
-        if (name && (pose === 1 || pose === 2)) preferences[name] = pose;
+        if (name && (Number.isInteger(pose) && pose >= 1 && pose <= 32)) preferences[name] = pose;
       });
     } catch (e) { }
     return preferences;
@@ -924,7 +924,7 @@
   function rememberPostcardPose(sci, pose) {
     var name = (sci || '').trim();
     pose = +pose;
-    if (!name || (pose !== 1 && pose !== 2)) return;
+    if (!name || (!Number.isInteger(pose) || pose < 1 || pose > 32)) return;
     postcardPosePreferences[name] = pose;
     writeLS(POSTCARD_POSE_STORAGE_KEY, JSON.stringify(postcardPosePreferences));
   }
@@ -9436,6 +9436,34 @@
     });
   }
 
+  var legacyPostcardPoseButtons = document.getElementById('modalPoseToggle').innerHTML;
+  function configurePostcardChoices(sci) {
+    var toggle = document.getElementById('modalPoseToggle');
+    var slug = slugify(sci);
+    var choices = [];
+    for (var number = 1; number <= 32; number++) {
+      if (DIMS[slug + (number > 1 ? '-' + number : '')]) choices.push(number);
+    }
+    var variants = choices.some(function (number) { return number > 2; })
+      || ACTIVE_BUNDLE.id === 'official-birds-of-america';
+    toggle.classList.toggle('has-variants', variants);
+    toggle.setAttribute('aria-label', variants ? 'Illustration' : 'Pose');
+    if (!variants) {
+      toggle.innerHTML = legacyPostcardPoseButtons;
+    } else {
+      toggle.innerHTML = '<i class="seg-pill" aria-hidden="true"></i>';
+      choices.forEach(function (number) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.pose = String(number);
+        button.setAttribute('aria-label', 'Illustration ' + number);
+        button.textContent = String(number);
+        toggle.appendChild(button);
+      });
+    }
+    return [].slice.call(toggle.querySelectorAll('button'));
+  }
+
   function postcardPoseAvailability(sci, poseBtns) {
     var cache = POSTCARD_POSE_CACHE;
     if (cache[sci]) return Promise.resolve(cache[sci]);
@@ -9483,7 +9511,7 @@
     var artwork = document.getElementById('modalArtwork');
     var genBtn = document.getElementById('modalGenerate');
     var poseToggle = document.getElementById('modalPoseToggle');
-    var poseBtns = [].slice.call(poseToggle.querySelectorAll('button'));
+    var poseBtns = configurePostcardChoices(sci);
     var speciesSlug = slugify(sci);
     var needsArt = tablesReady && !DIMS[speciesSlug] && !DIMS[speciesSlug + '-2'];
     var canGenerateArt = needsArt && ACTIVE_BUNDLE.included;
@@ -9531,12 +9559,14 @@
           if (result && result.ok) b.removeAttribute('data-unavailable');
           else b.setAttribute('data-unavailable', 'true');
         });
-        // Default to the highest-numbered available pose (in-flight if present,
-        // else perched). No readable pose gets a deterministic nest fallback.
+        // Numbered artwork starts at the first composition; legacy art prefers flight.
+        // No readable choice gets a deterministic nest fallback.
         var rememberedPose = rememberedPostcardPose(sci);
         var pick = available.find(function (candidate) {
           return candidate.pose === rememberedPose;
-        }) || available.slice().sort(function (a, b) { return b.pose - a.pose; })[0];
+        }) || available.slice().sort(function (a, b) {
+          return poseToggle.classList.contains('has-variants') ? a.pose - b.pose : b.pose - a.pose;
+        })[0];
         if (!pick) {
           poseToggle.setAttribute('data-unavailable', 'true');
           if (artwork) artwork.setAttribute('data-art-state', 'fallback');

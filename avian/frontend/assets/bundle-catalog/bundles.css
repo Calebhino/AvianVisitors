@@ -648,6 +648,15 @@ body.bundle-page {
   color: var(--bundle-muted);
   font: 11.5px/1.5 var(--bundle-serif);
 }
+.style-method a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+}
+.style-method a:hover,
+.style-method a:focus-visible { text-decoration-color: currentColor; }
 
 .style-regions {
   width: 100%;

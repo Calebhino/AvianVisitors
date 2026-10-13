@@ -257,7 +257,7 @@ class CommunityCatalogRefreshTests(unittest.TestCase):
             "packs": [],
         }
         merged = self.refresh(empty)
-        self.assertEqual(merged, self.bundled | {"updated": "2026-09-02"})
+        self.assertEqual(merged, self.bundled | {"updated": max(self.bundled["updated"], "2026-09-02")})
         self.assertEqual(bundle_manager.load_catalog(), merged)
 
     def test_binding_history_rejects_mutation_after_delist_and_accepts_exact_return(self) -> None:

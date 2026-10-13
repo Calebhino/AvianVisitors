@@ -181,6 +181,26 @@ class FrameBundleRuntimeTests(unittest.TestCase):
         self.environment.stop()
         self.temporary.cleanup()
 
+    def test_historical_variants_install_and_resolve_without_losing_the_eleventh(self) -> None:
+        bird = self.fixture.manifest["species"][0]
+        bird["poses"] = [{"id": f"variant-{n}", "file": "illustrations/" + bundle_runtime._pose_slug("Corvus corax", f"variant-{n}") + ".png",
+                          "sha256": self.fixture.object_hash, "bytes": len(self.fixture.png)} for n in range(1, 12)]
+        self.fixture.manifest["format_version"] = 2
+        self.fixture.manifest["license"] = {"spdx": "LicenseRef-NoC-US"}
+        raw = canonical(self.fixture.manifest)
+        sha = hashlib.sha256(raw).hexdigest()
+        (self.fixture.dev / "manifests" / f"{sha}.json").write_bytes(raw)
+        self.fixture.pack["manifest"] = {"url": bundle_runtime._manifest_url(sha), "sha256": sha, "bytes": len(raw)}
+        self.fixture.pack["license"] = "LicenseRef-NoC-US"
+        self.fixture.pack["archive_bytes"] = len(self.fixture.png) * 11
+        self.fixture.pack["previews"][0]["pose"] = "variant-1"
+        self.fixture.write_catalog()
+        bundle_runtime.use(self.fixture.pack["id"])
+        active = bundle_runtime.active_bundle()
+        self.assertEqual(active.resolve("Corvus corax", "variant-11").read_bytes(), self.fixture.png)
+        self.assertEqual(active.resolve("Corvus corax", "perched").read_bytes(), self.fixture.png)
+        self.assertIn("corvus-corax-11", active.assets_response()["dims"])
+
     def test_use_by_id_installs_activates_resolves_and_is_idempotent(self) -> None:
         first = bundle_runtime.use(self.fixture.pack["id"])
         self.assertTrue(first["changed"])
@@ -242,6 +262,10 @@ class FrameBundleRuntimeTests(unittest.TestCase):
     def test_vendored_catalog_uses_install_payloads_and_rejects_discovery_urls(self) -> None:
         catalog = bundle_runtime._vendor_catalog()
         expected = {
+            "official-birds-of-america": (
+                "f367d5fa8c80aa2296dcf3750313d9b65b409a59135d203ac2ba6bd08a220847",
+                175796,
+            ),
             "official-western-us-woodblock": (
                 "019d21f5f54b1a68a4510b089544eb7316a3db54dfd37fc129b950eeeffa591f",
                 131283,

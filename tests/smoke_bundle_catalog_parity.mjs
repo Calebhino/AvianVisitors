@@ -35,22 +35,23 @@ const catalog = JSON.parse(text('catalog/bundles-v1.json'));
 const geometry = JSON.parse(text('catalog/bundle-preview-geometry-v1.json'));
 assert.equal(catalog.format, 'avian-visitors-bundle-catalog');
 assert.equal(catalog.format_version, 1);
-assert.equal(catalog.packs.length, 11, 'the current public catalog has eleven regional packs');
+assert.equal(catalog.packs.length, 12, 'the current public catalog has twelve regional packs');
 const styles = new Map();
 for (const pack of catalog.packs) {
   if (!styles.has(pack.style.id)) styles.set(pack.style.id, []);
   styles.get(pack.style.id).push(pack);
 }
-assert.deepEqual([...styles.keys()], ['japanese-woodblock', 'evolutionary-impressionist']);
+assert.deepEqual([...styles.keys()], ['japanese-woodblock', 'evolutionary-impressionist', 'birds-of-america']);
 assert.equal(styles.get('japanese-woodblock').length, 10);
 assert.equal(styles.get('evolutionary-impressionist').length, 1);
 
 const official = catalog.packs.filter((pack) => pack.review === 'official');
-assert.equal(official.length, 2);
+assert.equal(official.length, 3);
 assert.deepEqual(Object.fromEntries(official.map((pack) => [pack.id, pack.availability])), {
   'official-western-us-woodblock': 'installable',
   'official-western-us-impressionist': 'installable',
-}, 'both immutable official bundles remain available from the public catalog');
+  'official-birds-of-america': 'installable',
+}, 'all immutable official bundles remain available from the public catalog');
 for (const pack of official) {
   assert.ok(pack.manifest && /^[0-9a-f]{64}$/.test(pack.manifest.sha256));
   assert.equal(pack.previews.length, 6, `${pack.id} must retain the six-bird collage`);
@@ -62,9 +63,10 @@ for (const pack of official) {
 }
 const vendoredPreviews = Object.keys(manifest.output_sha256)
   .filter((relative) => relative.startsWith('bundle-previews/') && relative.endsWith('.png'));
-assert.equal(vendoredPreviews.length, 26,
-  'all fourteen catalog thumbnails and twelve nested collage renders are vendored');
+assert.equal(vendoredPreviews.length, 39,
+  'all twenty-one catalog thumbnails and eighteen nested collage renders are vendored');
 let collageBytes = 0;
+let historicalBytes = 0;
 for (const [sourceUrl, item] of Object.entries(geometry.items || {})) {
   for (const url of [sourceUrl, item.render_url]) {
     assert.match(url, /^\/assets\/bundle-catalog\/bundle-previews\/(?:collage\/)?[a-z0-9._-]+[.]png$/);
@@ -74,7 +76,8 @@ for (const [sourceUrl, item] of Object.entries(geometry.items || {})) {
   }
   const renderRelative = item.render_url.replace('/assets/bundle-catalog/', '');
   const render = read(renderRelative);
-  collageBytes += render.length;
+  if (sourceUrl.includes('birds-of-america')) historicalBytes += render.length;
+  else collageBytes += render.length;
   assert.equal(sha(render), item.sha256, `geometry digest drift: ${renderRelative}`);
   assert.equal(render.subarray(1, 4).toString('ascii'), 'PNG');
   assert.equal(render.readUInt32BE(16), item.dims[0], `geometry width drift: ${renderRelative}`);
@@ -82,6 +85,7 @@ for (const [sourceUrl, item] of Object.entries(geometry.items || {})) {
   assert.equal(render[24], 8, `collage bit depth drift: ${renderRelative}`);
   assert.equal(render[25], 6, `collage alpha drift: ${renderRelative}`);
 }
+assert.ok(historicalBytes < 2_500_000, 'historical collage stays below 2.5 MB');
 assert.ok(collageBytes < 3_500_000,
   `twelve lossless collage renders stay beneath the 3.5 MB budget (${collageBytes})`);
 const discoveryOnly = catalog.packs.filter((pack) => pack.review !== 'official');

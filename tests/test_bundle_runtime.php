@@ -175,6 +175,19 @@ check_bundle(is_array($loadedIndex), 'custom immutable index loads');
 $object = avian_bundle_resolve_object($loadedIndex, 'corvus-brachyrhynchos', 1);
 check_bundle(is_array($object) && $object['sha256'] === $objectHash, 'exact perched pose resolves');
 check_bundle(avian_bundle_resolve_object($loadedIndex, 'corvus-brachyrhynchos', 2) === null, 'missing flight pose does not fall back');
+$numberedIndex = $loadedIndex;
+$numberedIndex['assets']['corvus-brachyrhynchos'] = [
+    'variant-1' => ['sha256' => $objectHash, 'bytes' => $objectBytes],
+    'variant-11' => ['sha256' => $objectHash, 'bytes' => $objectBytes],
+];
+check_bundle(avian_bundle_resolve_object($numberedIndex, 'corvus-brachyrhynchos', 11)['sha256'] === $objectHash, 'eleventh historical illustration resolves');
+check_bundle(avian_bundle_resolve_object($numberedIndex, 'corvus-brachyrhynchos', 33) === null, 'out-of-range illustration fails closed');
+write_bundle_json($root . '/packs/test-pack/1.0.0/index.json', $numberedIndex);
+check_bundle(is_array(avian_bundle_index_for_state($state)), 'numbered illustration index loads');
+$numberedIndex['assets']['corvus-brachyrhynchos']['flight'] = ['sha256' => $objectHash, 'bytes' => $objectBytes];
+write_bundle_json($root . '/packs/test-pack/1.0.0/index.json', $numberedIndex);
+check_bundle(avian_bundle_index_for_state($state) === null, 'mixed historical and legacy poses fail closed');
+write_bundle_json($root . '/packs/test-pack/1.0.0/index.json', $index);
 $opened = avian_bundle_open_object($object);
 check_bundle(is_array($opened) && is_resource($opened[0]), 'verified content object opens');
 fclose($opened[0]);

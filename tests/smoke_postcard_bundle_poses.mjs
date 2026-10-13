@@ -28,7 +28,7 @@ function element() {
     setAttribute(key, value) { attributes.set(key, value); },
     getAttribute(key) { return key === 'src' ? this.src || null : attributes.get(key) ?? null; },
     removeAttribute(key) { attributes.delete(key); },
-    classList: { add(value) { classes.add(value); }, remove(value) { classes.delete(value); } },
+    classList: { toggle(value, on) { on ? classes.add(value) : classes.delete(value); }, contains(value) { return classes.has(value); }, add(value) { classes.add(value); }, remove(value) { classes.delete(value); } },
   };
 }
 
@@ -40,6 +40,8 @@ function harness(poses, included = false) {
   };
   const buttons = [1, 2].map(pose => Object.assign(element(), { dataset: { pose: String(pose) } }));
   const toggle = get('modalPoseToggle');
+  Object.defineProperty(toggle, 'innerHTML', { get() { return ''; }, set(value) { if (value) buttons.splice(0); } });
+  toggle.appendChild = button => buttons.push(button);
   toggle.querySelectorAll = () => buttons;
   toggle.querySelector = selector => buttons.find(button => selector.includes(`"${button.dataset.pose}"`));
   let onToggle;
@@ -56,13 +58,13 @@ function harness(poses, included = false) {
       contentRevision: selection, ...(included ? {} : { selection_revision: selection }),
     },
     LEGACY_INCLUDED_CONTENT_REVISION: '0'.repeat(64),
-    DIMS: Object.fromEntries(poses.map(pose => ['corvus-corax' + (pose === 2 ? '-2' : ''), [32, 32]])),
+    DIMS: Object.fromEntries(poses.map(pose => ['corvus-corax' + (pose > 1 ? '-' + pose : ''), [32, 32]])),
     DATA: { lifelist: { species: [{ sci, com: 'Common Raven' }] } },
     POSTCARD_IMAGE_REQUEST: 0, POSTCARD_CONTENT_REQUEST: 0, POSTCARD_POSE_CACHE: {},
     SKETCH_VERSION: 'r12', tablesReady: true, justGenerated: {},
     activePostcardEducatorScope: '', educatorScopeGeneration: 0, adminAccessState: 'locked',
     SPECIES_CACHE: {}, WIKI_CACHE: {},
-    document: { getElementById: get, querySelector() { return null; } },
+    document: { createElement: element, getElementById: get, querySelector() { return null; } },
     Image: class {
       set src(value) {
         decoded.push(value);
@@ -147,3 +149,15 @@ assert.equal(current.find(result => result.pose === 2).ok, false,
   'a late probe from the previous bundle cannot overwrite current pose availability');
 
 console.log('Postcard bundle pose, toggle, and selection-race smokes passed.');
+
+const variants = harness([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+await variants.context.populatePostcard(sci);
+assert.equal(variants.buttons.length, 11);
+assert.equal(variants.get('modalPoseToggle').getAttribute('aria-label'), 'Illustration');
+assert.ok(!variants.get('modalImg').src.includes('pose=11'), 'default is the first illustration');
+await variants.choose(11);
+assert.ok(variants.get('modalImg').src.includes('pose=11'));
+assert.equal(variants.preferences.get(sci), 11);
+await variants.context.populatePostcard(sci);
+assert.ok(variants.get('modalImg').src.includes('pose=11'), 'reopening keeps the eleventh illustration');
+console.log('Eleven-choice historical illustration smoke passed.');

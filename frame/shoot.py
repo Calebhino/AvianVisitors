@@ -319,9 +319,12 @@ def _make_cutout_handler(base=None, local_dir=None, resolver=None, errors=None, 
         try:
             params = urllib.parse.parse_qs(urllib.parse.urlparse(route.request.url).query, keep_blank_values=True)
             slug = re.sub(r"[^a-z0-9]+", "-", (params.get("sci") or [""])[0].lower()).strip("-")
-            pose = "flight" if (params.get("pose") or ["1"])[0] == "2" else "perched"
-            if pose == "flight":
-                slug += "-2"
+            number = (params.get("pose") or ["1"])[0]
+            if not re.fullmatch(r"[1-9]|[12][0-9]|3[0-2]", number):
+                return route.fulfill(status=400, content_type="text/plain", body="invalid illustration choice")
+            pose = "perched" if number == "1" else "flight" if number == "2" else f"variant-{number}"
+            if number != "1":
+                slug += "-" + number
             if resolver is not None:
                 if expected_identity is not None:
                     if any(key in params and params[key] != [revision] for key, revision in expected_identity.items()):

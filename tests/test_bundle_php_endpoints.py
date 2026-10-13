@@ -176,6 +176,19 @@ class BundlePhpEndpoints(unittest.TestCase):
         for header in ("Content-Type", "Content-Length", "Cache-Control", "ETag", "X-Content-Type-Options"):
             self.assertEqual(head_headers.get(header), headers.get(header), header)
 
+    def test_numbered_cutout_is_exact_and_rejects_malformed_choices(self) -> None:
+        path = self.library / 'packs/test-pack/1.0.0/index.json'
+        index = json.loads(path.read_text())
+        item = index['assets']['corvus-brachyrhynchos']['perched']
+        index['assets']['corvus-brachyrhynchos'] = {'variant-1': item, 'variant-11': item}
+        self._json(path, index)
+        base = '/avian/api/cutout.php?sci=Corvus%20brachyrhynchos&bundle=' + self.revision_one + '&pose='
+        self._assert_cutout_head_matches_get(base + '11', (ROOT / 'avian/assets/illustrations/corvus-brachyrhynchos.png').read_bytes())
+        self.assertEqual(self.request(base + '12')[0], 404)
+        for choice in ('0', '33', '01', '11suffix', '-1', '1.5', '&pose[]=11'):
+            with self.subTest(choice=choice):
+                self.assertEqual(self.request(base + choice)[0], 400)
+
     def test_included_cutout_head_matches_get_for_both_poses(self) -> None:
         self._json(self.library / "active.json", {
             "schema_version": 1,
