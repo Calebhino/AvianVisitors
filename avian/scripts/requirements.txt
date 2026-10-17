@@ -6,3 +6,7 @@
 Pillow>=10.0
 rembg>=2.0.76
 onnxruntime>=1.16
+# cutout.py's belly fill (rembg already pulls these in; pinned here because
+# the script imports them directly).
+numpy
+scipy

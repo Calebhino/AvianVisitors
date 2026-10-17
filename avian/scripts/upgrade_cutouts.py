@@ -25,58 +25,26 @@ import sys
 import tempfile
 from pathlib import Path
 
-CREAM_TOL = 11   # near-paper distance (matches the repo cutout pipeline)
-PLUMAGE = 18     # beyond this distance from paper counts as inked body
 PI_TARGET_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*@[A-Za-z0-9][A-Za-z0-9._:-]*$")
 PATH_PART_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 
 
 def birefnet_cut(src: Path, dst: Path, sess) -> None:
-    """BiRefNet matte + exterior-cream peel + belly fill. A filled region
-    whose boundary is mostly not plumage is a between-legs pocket, not a
-    belly, and is rejected. Same approach the bundled set was cut with."""
+    """BiRefNet matte + exterior-cream peel + belly fill (cutout.matte), then
+    crop. Same approach the bundled set was cut with."""
     import numpy as np
-    from PIL import Image, ImageFilter
+    from PIL import Image
     from rembg import remove
-    from scipy import ndimage
 
-    im = Image.open(src).convert("RGB")
-    arr = np.asarray(im)
-    h, w, _ = arr.shape
-    a = np.asarray(remove(im, session=sess))[:, :, 3]
-    corners = np.concatenate([arr[:15, :15].reshape(-1, 3), arr[:15, -15:].reshape(-1, 3),
-                              arr[-15:, :15].reshape(-1, 3), arr[-15:, -15:].reshape(-1, 3)])
-    paper = np.median(corners, axis=0)
-    dist = np.sqrt(((arr - paper) ** 2).sum(2))
-    passable = (a < 100) | (dist < CREAM_TOL)
-    lbl, _n = ndimage.label(passable)
-    border = set(lbl[0, :]) | set(lbl[-1, :]) | set(lbl[:, 0]) | set(lbl[:, -1])
-    border.discard(0)
-    exterior = np.isin(lbl, list(border))
-    base = (a >= 100) & ~exterior
-    solid = ndimage.binary_fill_holes(base)
-    added = solid & ~base
-    plumage = (a >= 100) & (dist > PLUMAGE)
-    al, an = ndimage.label(added)
-    reject = np.zeros_like(solid)
-    for i in range(1, an + 1):
-        C = al == i
-        ring = ndimage.binary_dilation(C, iterations=3) & ~C & ~exterior
-        if ring.sum() == 0 or plumage[ring].mean() < 0.30:
-            reject |= C
-    solid = solid & ~reject
-    L, m = ndimage.label(solid)
-    if m > 1:
-        sizes = ndimage.sum(np.ones_like(L), L, range(1, m + 1))
-        solid = (L == int(np.argmax(sizes)) + 1)
-    inside = ndimage.binary_erosion(solid, iterations=2)
-    af = a.copy(); af[inside] = 255; af[~solid] = 0
-    af = np.maximum(np.asarray(Image.fromarray(af).filter(ImageFilter.GaussianBlur(0.4))),
-                    (inside * 255).astype(np.uint8))
-    af[~solid] = 0
-    rgba = np.dstack([arr, af]).astype(np.uint8)
-    fg = af > 40
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    from cutout import matte
+
+    rgba = np.asarray(matte(Image.open(src), sess, remove))
+    h, w = rgba.shape[:2]
+    fg = rgba[:, :, 3] > 40
     ys, xs = np.where(fg)
     y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
     pad = round(0.03 * max(y1 - y0, x1 - x0))

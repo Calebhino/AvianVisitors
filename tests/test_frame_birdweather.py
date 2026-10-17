@@ -124,6 +124,33 @@ class FrameBirdWeatherTests(unittest.TestCase):
         self.assertEqual(have, [rows[0]])
         self.assertEqual(missing, [rows[1]])
 
+    def test_subspecies_groups_fold_into_their_drawable_species(self):
+        def row(count, com, sci):
+            return {"count": count, "species": {"commonName": com, "scientificName": sci}}
+
+        rows = [
+            row(9, "Ring-necked Pheasant (Ring-necked)", "Phasianus colchicus [colchicus Group]"),
+            row(5, "Ring-necked Pheasant", "Phasianus colchicus"),
+            row(3, "Australasian Pipit (New Zealand)", "Anthus novaeseelandiae [novaeseelandiae Group]"),
+            row(12, "House Sparrow", "Passer domesticus"),
+        ]
+        expected = [
+            {"sci": "Phasianus colchicus", "com": "Ring-necked Pheasant", "n": 14},
+            {"sci": "Passer domesticus", "com": "House Sparrow", "n": 12},
+            {"sci": "Anthus novaeseelandiae", "com": "Australasian Pipit", "n": 3},
+        ]
+        with mock.patch.object(self.birdweather, "_graphql", return_value={"data": {"topSpecies": rows}}):
+            self.assertEqual(self.birdweather.top_species(-36.8, 174.7, 15), expected)
+        station = {"data": {"station": {"id": "314"}, "topSpecies": rows}}
+        with mock.patch.object(self.birdweather, "_graphql", return_value=station):
+            self.assertEqual(self.birdweather.top_species_for_station("314"), expected)
+
+        apt = self.dims_fixture(("phasianus-colchicus", "anthus-novaeseelandiae"))
+        with mock.patch.object(self.birdweather, "_graphql", return_value=station):
+            have, missing = self.birdweather.coverage_for_station("314", apt_js=apt)
+        self.assertEqual([s["sci"] for s in have], ["Phasianus colchicus", "Anthus novaeseelandiae"])
+        self.assertEqual([s["sci"] for s in missing], ["Passer domesticus"])
+
     def test_strict_transport_rejects_errors_and_oversized_bodies(self):
         class Response:
             def __init__(self, body):

@@ -59,9 +59,10 @@ def writer(name, tmp_path, monkeypatch, modules, payload=None):
         return path, module.main
     if name == "cutout":
         module = modules[name]
-        cut = image.convert("RGBA")
+        # Like rembg, return a matte the size of the image it was given.
         monkeypatch.setitem(sys.modules, "rembg", types.SimpleNamespace(
-            new_session=lambda model: object(), remove=lambda image, session: cut))
+            new_session=lambda model: object(),
+            remove=lambda source, session: source.convert("RGBA")))
         monkeypatch.setattr(sys, "argv", ["cutout.py", "calypte-anna", "--force",
                                         "--dir", str(tmp_path)])
         return path, module.main
@@ -147,9 +148,9 @@ def test_readers_keep_complete_old_image_until_production_writer_finishes(
         thread.join(5)
     assert not thread.is_alive()
     assert not failures
+    assert path.read_bytes() != old
     with Image.open(path) as opened:
         opened.load()
-        assert opened.size != (30, 40)
 
 
 @pytest.mark.parametrize("name", ["pregen", "generate_one"])

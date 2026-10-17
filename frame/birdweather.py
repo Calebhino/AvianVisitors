@@ -146,6 +146,35 @@ def bbox(lat, lon, miles):
     return (lat + dlat, lon + dlon), (lat - dlat, lon - dlon)
 
 
+_GROUP_LABEL = re.compile(r"\s*\[[^\]]*\]\s*$")
+_GROUP_COMMON = re.compile(r"\s*\([^)]*\)\s*$")
+
+
+def merge_groups(species):
+    """Fold BirdWeather's eBird subspecies groups into their species.
+
+    BirdWeather reports some detections under a group label such as
+    "Phasianus colchicus [colchicus Group]" alongside the plain species. The
+    art is keyed by species, so a group row would never match an illustration
+    and would split the bird's count. Strip the label, sum the counts, and keep
+    the plain row's common name when there is one."""
+    merged = {}
+    for s in species:
+        sci = _GROUP_LABEL.sub("", s["sci"])
+        grouped = sci != s["sci"]
+        com = _GROUP_COMMON.sub("", s["com"]) if grouped else s["com"]
+        entry = merged.get(sci)
+        if entry is None:
+            merged[sci] = {"sci": sci, "com": com or sci, "n": s["n"], "_grouped": grouped}
+            continue
+        entry["n"] += s["n"]
+        if entry["_grouped"] and not grouped:
+            entry["com"], entry["_grouped"] = com, False
+    out = [{"sci": e["sci"], "com": e["com"], "n": e["n"]} for e in merged.values()]
+    out.sort(key=lambda s: -s["n"])
+    return out
+
+
 def top_species(lat, lon, miles, days=7, limit=60, timeout=20):
     """BirdWeather's most-detected species in the box, as [{sci,com,n}]."""
     (ne_lat, ne_lon), (sw_lat, sw_lon) = bbox(lat, lon, miles)
@@ -162,7 +191,7 @@ def top_species(lat, lon, miles, days=7, limit=60, timeout=20):
         sci = sp.get("scientificName")
         if sci:
             out.append({"sci": sci, "com": sp.get("commonName") or sci, "n": row.get("count") or 1})
-    return out
+    return merge_groups(out)
 
 
 def top_species_for_station(value, days=7, limit=60, timeout=20):
@@ -219,8 +248,7 @@ query FrameStation($stationId: ID!, $stationIds: [ID!]!, $period: InputDuration!
         if not isinstance(com, str) or not com.strip():
             com = sci
         out.append({"sci": sci, "com": com, "n": count})
-    out.sort(key=lambda s: -s["n"])
-    return out
+    return merge_groups(out)
 
 
 def _haversine(lat1, lon1, lat2, lon2):
@@ -269,8 +297,7 @@ def triangulate(lat, lon, n=3, days=7, timeout=20):
             entry = weighted.setdefault(sci, {"com": sp.get("commonName") or sci, "score": 0.0})
             entry["score"] += (row.get("count") or 0) * weight
     out = [{"sci": sci, "com": e["com"], "n": max(1, round(e["score"]))} for sci, e in weighted.items()]
-    out.sort(key=lambda s: -s["n"])
-    return out
+    return merge_groups(out)
 
 
 def _private_ebird_key():
