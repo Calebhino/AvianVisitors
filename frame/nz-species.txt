@@ -1,0 +1,95 @@
+Acanthis cabaret|Lesser Redpoll
+Acanthisitta chloris|Rifleman
+Acridotheres tristis|Common Myna
+Alauda arvensis|Eurasian Skylark
+Anas gracilis|Gray Teal
+Anas platyrhynchos|Mallard
+Anas superciliosa|Pacific Black Duck
+Anser anser|Graylag Goose
+Anthornis melanura|New Zealand Bellbird
+Anthus novaeseelandiae|Australasian Pipit
+Apteryx mantelli|North Island Brown Kiwi
+Ardea alba|Great Egret
+Ardenna bulleri|Buller's Shearwater
+Ardenna grisea|Sooty Shearwater
+Ardenna tenuirostris|Short-tailed Shearwater
+Arenaria interpres|Ruddy Turnstone
+Athene noctua|Little Owl
+Branta canadensis|Canada Goose
+Bubulcus ibis|Cattle Egret
+Calidris acuminata|Sharp-tailed Sandpiper
+Calidris canutus|Red Knot
+Callaeas wilsoni|North Island Kokako
+Callipepla californica|California Quail
+Carduelis carduelis|European Goldfinch
+Charadrius bicinctus|Double-banded Plover
+Chlidonias albostriatus|Black-fronted Tern
+Chloris chloris|European Greenfinch
+Chroicocephalus novaehollandiae|Silver Gull
+Chrysococcyx lucidus|Shining Bronze-Cuckoo
+Circus approximans|Swamp Harrier
+Columba livia|Rock Pigeon
+Cyanoramphus novaezelandiae|Red-crowned Parakeet
+Cygnus atratus|Black Swan
+Daption capense|Cape Petrel
+Diomedea exulans|Wandering Albatross
+Egretta novaehollandiae|White-faced Heron
+Egretta sacra|Pacific Reef-Heron
+Elseyornis melanops|Black-fronted Dotterel
+Emberiza citrinella|Yellowhammer
+Eudyptula minor|Little Penguin
+Fringilla coelebs|Common Chaffinch
+Fulica atra|Eurasian Coot
+Gallirallus australis|Weka
+Gallirallus philippensis|Buff-banded Rail
+Gerygone igata|Gray Gerygone
+Gymnorhina tibicen|Australian Magpie
+Haematopus finschi|South Island Oystercatcher
+Haematopus unicolor|Variable Oystercatcher
+Himantopus leucocephalus|Pied Stilt
+Hirundo neoxena|Welcome Swallow
+Hydroprogne caspia|Caspian Tern
+Larus dominicanus|Kelp Gull
+Limosa lapponica|Bar-tailed Godwit
+Meleagris gallopavo|Wild Turkey
+Mohoua albicilla|Whitehead
+Mohoua novaeseelandiae|Pipipi
+Mohoua ochrocephala|Yellowhead
+Nestor meridionalis|New Zealand Kaka
+Ninox novaeseelandiae|Morepork
+Notiomystis cincta|Stitchbird
+Numenius phaeopus|Whimbrel
+Passer domesticus|House Sparrow
+Pavo cristatus|Indian Peafowl
+Petroica australis|South Island Robin
+Petroica longipes|North Island Robin
+Petroica macrocephala|Tomtit
+Phalacrocorax carbo|Great Cormorant
+Phasianus colchicus|Ring-necked Pheasant
+Philesturnus rufusater|North Island Saddleback
+Platycercus eximius|Eastern Rosella
+Pluvialis fulva|Pacific Golden-Plover
+Podiceps cristatus|Great Crested Grebe
+Poodytes punctatus|New Zealand Fernbird
+Porphyrio melanotus|Australasian Swamphen
+Prosthemadera novaeseelandiae|Tui
+Prunella modularis|Dunnock
+Pterodroma cookii|Cook's Petrel
+Pterodroma inexpectata|Mottled Petrel
+Rhipidura fuliginosa|New Zealand Fantail
+Stercorarius antarcticus|Brown Skua
+Stercorarius parasiticus|Parasitic Jaeger
+Sterna striata|White-fronted Tern
+Streptopelia chinensis|Spotted Dove
+Streptopelia roseogrisea|African Collared-Dove
+Sturnus vulgaris|European Starling
+Tachybaptus novaehollandiae|Australasian Grebe
+Tadorna variegata|Paradise Shelduck
+Thalassarche melanophris|Black-browed Albatross
+Todiramphus sanctus|Sacred Kingfisher
+Turdus merula|Eurasian Blackbird
+Turdus philomelos|Song Thrush
+Urodynamis taitensis|Long-tailed Koel
+Vanellus miles|Masked Lapwing
+Zapornia tabuensis|Spotless Crake
+Zosterops lateralis|Silvereye
