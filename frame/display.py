@@ -56,6 +56,8 @@ DEFAULTS = {
     "bird_names": False,
     "mat": 0.0,             # extra global shrink of the content inside the A5 opening
     "opening": 0.7071,      # opening height as a panel fraction; 0.7071 preserves A5
+    "collage_width": 0.66,  # collage width as a fraction of the opening
+    "title_gap": 0.1,       # title-to-collage gap as a fraction of the opening height
     "rotate": 90,           # 90 or 270 if the frame hangs the other way up
     "saturation": 0.6,
     "panel": "",            # "el133uf1" forces the 13.3" driver if auto() fails
@@ -226,13 +228,28 @@ def _centroid_x(img, paper):
 
 # Content layout inside the A5 opening: the title and collage are sized
 # independently (as fractions of the opening width), so tuning one leaves the
-# other untouched. gap is a fraction of the opening height.
+# other untouched. gap is a fraction of the opening height. The collage width
+# and gap defaults are overridable per frame (collage_width, title_gap).
 TITLE_H_FRAC, COLLAGE_FRAC, GAP_FRAC = 0.065, 0.66, 0.1
 
 
-def mat_and_center(img, mat, opening):
+def _layout_fraction(name, value, allow_zero=False):
+    if isinstance(value, bool):
+        raise ValueError(f"{name} must be a number")
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be a number") from exc
+    if not (0 <= value <= 1 if allow_zero else 0 < value <= 1):
+        raise ValueError(f"{name} must be {'from 0' if allow_zero else 'greater than 0 and'} at most 1")
+    return value
+
+
+def mat_and_center(img, mat, opening, collage_width=COLLAGE_FRAC, title_gap=GAP_FRAC):
     """Crop the title and collage, size each to a fraction of the opening,
     stack with a gap, and centre on the panel."""
+    collage_width = _layout_fraction("collage_width", collage_width)
+    title_gap = _layout_fraction("title_gap", title_gap, allow_zero=True)
     img = img.convert("RGB")
     paper = _paper(img)
     mask = ImageChops.difference(img, Image.new("RGB", img.size, paper))
@@ -261,13 +278,13 @@ def mat_and_center(img, mat, opening):
     if not (tb and cb):
         return _place(img.crop(full), paper, mat, opening)
     title = _scale_h(img.crop(tb), box_h * TITLE_H_FRAC)
-    gap = round(box_h * GAP_FRAC)
+    gap = round(box_h * title_gap)
     # Size the collage to fill the room left under the fixed-size title,
     # binding on whichever of width or remaining height runs out first, so the
     # title stays a consistent size whether the collage is tall or compact
     # instead of ballooning when the collage happens to be short.
     coll = img.crop(cb)
-    cs = min(box_w * COLLAGE_FRAC / coll.width, (box_h - title.height - gap) / coll.height)
+    cs = min(box_w * collage_width / coll.width, (box_h - title.height - gap) / coll.height)
     collage = coll.resize((max(1, round(coll.width * cs)), max(1, round(coll.height * cs))), Image.LANCZOS)
     ccx = _centroid_x(collage, paper)  # centre the collage by ink weight, not bbox
     half = max(ccx, collage.width - ccx)
@@ -465,7 +482,7 @@ def run(cfg, preview=None, force=False, use_signature=True, mat_box=False):
     except Exception as e:
         print(f"could not get image: {e}", file=sys.stderr)  # keep last panel image
         return False
-    img = mat_and_center(img, cfg["mat"], cfg["opening"])
+    img = mat_and_center(img, cfg["mat"], cfg["opening"], cfg["collage_width"], cfg["title_gap"])
     if preview:
         out = quantize_spectra6(img)
         if mat_box:

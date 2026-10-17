@@ -760,3 +760,37 @@ def test_response_limits_reject_before_retaining_oversized_art(monkeypatch):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def _title_and_collage_shot():
+    paper = (240, 236, 224)
+    shot = Image.new("RGB", (1200, 1600), paper)
+    shot.paste((30, 30, 30), (450, 200, 750, 260))     # title
+    shot.paste((40, 90, 60), (300, 500, 900, 1000))    # collage
+    return shot, paper
+
+
+def _ink_width(img, paper):
+    from PIL import ImageChops
+    diff = ImageChops.difference(img, Image.new("RGB", img.size, paper)).convert("L")
+    box = diff.point(lambda p: 255 if p > 34 else 0).getbbox()
+    return box[2] - box[0]
+
+
+def test_collage_width_and_title_gap_enlarge_the_collage_without_changing_defaults():
+    display = load("display_layout", "frame/display.py")
+    shot, paper = _title_and_collage_shot()
+    default = display.mat_and_center(shot, 0.0, 1.0)
+    explicit = display.mat_and_center(shot, 0.0, 1.0, display.COLLAGE_FRAC, display.GAP_FRAC)
+    wider = display.mat_and_center(shot, 0.0, 1.0, 0.9, 0.05)
+    assert list(default.getdata()) == list(explicit.getdata())
+    assert _ink_width(wider, paper) > _ink_width(default, paper) * 1.25
+    assert wider.size == (display.PANEL_W, display.PANEL_H)
+
+
+@pytest.mark.parametrize("width,gap", [(0, 0.1), (1.2, 0.1), (0.9, -0.1), ("big", 0.1), (True, 0.1)])
+def test_layout_fractions_reject_out_of_range_values(width, gap):
+    display = load("display_layout_bad", "frame/display.py")
+    shot, _paper = _title_and_collage_shot()
+    with pytest.raises(ValueError):
+        display.mat_and_center(shot, 0.0, 1.0, width, gap)
